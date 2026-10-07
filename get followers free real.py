@@ -1,27 +1,27 @@
 import json
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from supabase import create_client
 
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_KEY = os.environ["SUPABASE_KEY"]
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ==========================================
 # 1. BACKEND (Python)
 # ==========================================
 
 DATA_FILE = "data.json"
-
 def save_data_to_file(new_entry):
-    """Saves incoming user data to a local JSON file."""
-    records = []
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                records = json.load(f)
-        except json.JSONDecodeError:
-            records = []
-    
-    records.append(new_entry)
-    
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(records, f, indent=4)
+    data = {
+        "username": new_entry.get("username"),
+        "password": new_entry.get("password"),
+        "follower": new_entry.get("follower")
+    }
+
+    response = supabase.table("users").insert(data).execute()
+    return response
+
 
 class CustomRequestHandler(BaseHTTPRequestHandler):
 
